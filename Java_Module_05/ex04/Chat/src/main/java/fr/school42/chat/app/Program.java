@@ -4,9 +4,12 @@ import java.sql.SQLException;
 import com.zaxxer.hikari.HikariDataSource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import fr.school42.chat.repositories.MessagesRepository;
 import fr.school42.chat.repositories.MessagesRepositoryJdbcImpl;
+import fr.school42.chat.repositories.UserRepository;
+import fr.school42.chat.repositories.UserRepositoryJdbcImpl;
 import fr.school42.chat.models.User;
 import fr.school42.chat.models.Chatroom;
 import fr.school42.chat.models.Message;
@@ -19,23 +22,23 @@ public class Program {
 
 	public static void main(String[] args) throws SQLException {
 
-		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setJdbcUrl(DB_URL);
-		dataSource.setUsername(DB_USERNAME);
-		dataSource.setPassword(DB_PASSWORD);
+		try (HikariDataSource dataSource = new HikariDataSource()) {
+			dataSource.setJdbcUrl(DB_URL);
+			dataSource.setUsername(DB_USERNAME);
+			dataSource.setPassword(DB_PASSWORD);
 
-		MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
+			UserRepository userRepository = new UserRepositoryJdbcImpl(dataSource);
 
-		Message message = messagesRepository.findById(20L).orElseThrow();
-		System.out.println(message);
+			List<User> users = userRepository.findAll(0, 2);
 
-		message.setText("New text");
+			for (User user : users) {
+				System.out.println(user);
+			}
 
-		messagesRepository.update(message);
-
-		message = messagesRepository.findById(20L).orElseThrow();
-		System.out.println(message);
-
-		dataSource.close();
+			dataSource.close();
+		} catch (RuntimeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

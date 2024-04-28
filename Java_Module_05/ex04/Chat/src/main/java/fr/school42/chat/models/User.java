@@ -1,5 +1,6 @@
 package fr.school42.chat.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class User {
@@ -11,6 +12,14 @@ public class User {
 	private List<Chatroom> chatrooms;
 
 	public User() {
+	}
+
+	public User(Long id, String login, String password) {
+		this.id = id;
+		this.login = login;
+		this.password = password;
+		this.createdRooms = new ArrayList<Chatroom>();
+		this.chatrooms = new ArrayList<Chatroom>();
 	}
 
 	public User(Long id, String login, String password, List<Chatroom> createdRooms, List<Chatroom> chatrooms) {
@@ -49,12 +58,30 @@ public class User {
 		return createdRooms;
 	}
 
+	public void addCreatedRoom(Chatroom chatroom) {
+		for (Chatroom room : createdRooms) {
+			if (room.getId() == chatroom.getId()) {
+				return;
+			}
+		}
+		createdRooms.add(chatroom);
+	}
+
 	public void setCreatedRooms(List<Chatroom> createdRooms) {
 		this.createdRooms = createdRooms;
 	}
 
 	public List<Chatroom> getChatrooms() {
 		return chatrooms;
+	}
+
+	public void addChatroom(Chatroom chatroom) {
+		for (Chatroom room : chatrooms) {
+			if (room.getId() == chatroom.getId()) {
+				return;
+			}
+		}
+		chatrooms.add(chatroom);
 	}
 
 	public void setChatrooms(List<Chatroom> chatrooms) {
@@ -95,7 +122,8 @@ public class User {
 
 	@Override
 	public String toString() {
-		return "User{" + "id=" + id + ", login='" + login + '\'' + ", password='" + password + '\'' + ", createdRooms="
-				+ createdRooms + ", chatrooms=" + chatrooms + '}';
+
+		return "User : {\n" + "id=" + id + ",\n" + "login=\"" + login + "\",\n" + "password=\"" + password + "\",\n"
+				+ "createdRooms=" + createdRooms + ",\n" + "chatrooms=" + chatrooms + "\n" + "}";
 	}
 }
