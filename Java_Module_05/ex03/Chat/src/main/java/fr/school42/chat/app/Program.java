@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import com.zaxxer.hikari.HikariDataSource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import fr.school42.chat.repositories.MessagesRepository;
 import fr.school42.chat.repositories.MessagesRepositoryJdbcImpl;
@@ -26,15 +27,19 @@ public class Program {
 
 		MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
 
-		Message message = messagesRepository.findById(20L).orElseThrow();
-		System.out.println(message);
+		Optional<Message> messageOptional = messagesRepository.findById(13L);
 
-		message.setText("New text");
+		if (messageOptional.isPresent()) {
+			Message message = messageOptional.get();
 
-		messagesRepository.update(message);
+			message.setText("Hello, World!");
+			message.setDateTime(null);
 
-		message = messagesRepository.findById(20L).orElseThrow();
-		System.out.println(message);
+			messagesRepository.update(message);
+
+		} else {
+			System.out.println("Message not found");
+		}
 
 		dataSource.close();
 	}

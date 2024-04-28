@@ -23,59 +23,111 @@ public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 	}
 
 	@Override
-	public Optional<Message> findById(Long id) {
-		String sql = "SELECT * FROM messages " +
+	public Optional<Message> findById(Long id) throws RuntimeException {
+
+		final String SQL_SELECT = "SELECT * FROM messages " +
 				"JOIN users u ON messages.author = u.id " +
 				"JOIN chat_rooms r ON messages.chat_room = r.id " +
 				"WHERE messages.id = ?";
 
 		try (Connection connection = dataSource.getConnection();
-				PreparedStatement statement = connection.prepareStatement(sql);
-				ResultSet resultSet = statement.executeQuery()) {
+				PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
 			statement.setLong(1, id);
-			if (resultSet.next()) {
-				return Optional.of(createMessageFromResultSet(resultSet));
-			} else {
-				return Optional.empty();
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return Optional.of(createMessageFromResultSet(resultSet));
+				} else {
+					return Optional.empty();
+				}
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException("Error finding message by id", e);
 		}
+
 	}
 
 	@Override
-	public Message save(Message message) {
-		String sql = "INSERT INTO messages (author, chat_room, text, created_at) VALUES (?, ?, ?, ?)";
+	public Message save(Message message) throws RuntimeException, NotSavedSubEntityException {
+
+		if (message.getAuthor() == null || message.getAuthor().getId() == null) {
+			throw new NotSavedSubEntityException("Author not saved");
+		}
+		if (message.getChatroom() == null || message.getChatroom().getId() == null) {
+			throw new NotSavedSubEntityException("Chatroom not saved");
+		}
+
+		UserRepository userRepository = new UserRepositoryJdbcImpl(dataSource);
+		ChatroomRepository chatroomsRepository = new ChatroomRepositoryJdbcImpl(dataSource);
+
+		Optional<User> author = userRepository.findById(message.getAuthor().getId());
+		Optional<Chatroom> chatroom = chatroomsRepository.findById(message.getChatroom().getId());
+
+		if (author.isEmpty()) {
+			throw new NotSavedSubEntityException("Author not saved");
+		}
+
+		if (chatroom.isEmpty()) {
+			throw new NotSavedSubEntityException("Chatroom not saved");
+		}
+
+		final String SQL_INSERT = "INSERT INTO messages (text, created_at, author, chat_room) VALUES (?, ?, ?, ?)";
 
 		try (Connection connection = dataSource.getConnection();
-				PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-			statement.setLong(1, message.getAuthor().getId());
-			statement.setLong(2, message.getChatroom().getId());
-			statement.setString(3, message.getText());
-			statement.setTimestamp(4, Timestamp.valueOf(message.getDateTime()));
-			int rowsAffected = statement.executeUpdate();
-			if (rowsAffected > 0) {
-				try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-					if (generatedKeys.next()) {
-						message.setId(generatedKeys.getLong(1));
-					}
+				PreparedStatement statement = connection.prepareStatement(SQL_INSERT,
+						Statement.RETURN_GENERATED_KEYS)) {
+			statement.setString(1, message.getText());
+			statement.setTimestamp(2, Timestamp.valueOf(message.getDateTime()));
+			statement.setLong(3, message.getAuthor().getId());
+			statement.setLong(4, message.getChatroom().getId());
+
+			statement.executeUpdate();
+
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					message.setId(generatedKeys.getLong(1));
 				}
 			}
-			return message;
 		} catch (SQLException e) {
 			throw new RuntimeException("Error saving message", e);
 		}
+		return message;
 	}
 
 	@Override
-	public Message update(Message message) {
-		String sql = "UPDATE messages SET text = ?, created_at = ? WHERE id = ?";
+	public Message update(Message message) throws RuntimeException {
+
+		if (message.getAuthor() == null || message.getAuthor().getId() == null) {
+			throw new NotSavedSubEntityException("Author not saved");
+		}
+		if (message.getChatroom() == null || message.getChatroom().getId() == null) {
+			throw new NotSavedSubEntityException("Chatroom not saved");
+		}
+
+		UserRepository userRepository = new UserRepositoryJdbcImpl(dataSource);
+		ChatroomRepository chatroomsRepository = new ChatroomRepositoryJdbcImpl(dataSource);
+
+		Optional<User> author = userRepository.findById(message.getAuthor().getId());
+		Optional<Chatroom> chatroom = chatroomsRepository.findById(message.getChatroom().getId());
+
+		if (author.isEmpty()) {
+			throw new NotSavedSubEntityException("Author not saved");
+		}
+
+		if (chatroom.isEmpty()) {
+			throw new NotSavedSubEntityException("Chatroom not saved");
+		}
+
+		final String SQL_UPDATE = "UPDATE messages SET author = ?, chat_room = ?, text = ?, created_at = ? WHERE id = ?";
 
 		try (Connection connection = dataSource.getConnection();
-				PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-			statement.setString(1, message.getText());
-			statement.setTimestamp(2, java.sql.Timestamp.valueOf(message.getDateTime()));
-			statement.setLong(3, message.getId());
+				PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+			statement.setLong(1, message.getAuthor().getId());
+			statement.setLong(2, message.getChatroom().getId());
+			statement.setString(3, message.getText());
+			Timestamp timestamp = message.getDateTime() == null ? null : Timestamp.valueOf(message.getDateTime());
+			statement.setTimestamp(4, timestamp);
+			statement.setLong(5, message.getId());
+
 			int rowsAffected = statement.executeUpdate();
 			if (rowsAffected > 0) {
 				return message;
@@ -83,9 +135,9 @@ public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 				return null;
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException("Error updating message", e);
 		}
+
 	}
 
 	private Message createMessageFromResultSet(ResultSet resultSet) throws SQLException {
@@ -113,5 +165,4 @@ public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 		return chatroom;
 	}
 
-	
 }
