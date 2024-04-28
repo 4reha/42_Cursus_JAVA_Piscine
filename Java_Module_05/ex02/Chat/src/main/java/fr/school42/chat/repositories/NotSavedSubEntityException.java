@@ -6,4 +6,9 @@ public class NotSavedSubEntityException extends RuntimeException {
         super(message);
     }
 
+
+    public NotSavedSubEntityException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

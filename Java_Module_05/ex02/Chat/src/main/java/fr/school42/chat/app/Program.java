@@ -19,27 +19,28 @@ public class Program {
 
 	public static void main(String[] args) throws SQLException {
 
-		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setJdbcUrl(DB_URL);
-		dataSource.setUsername(DB_USERNAME);
-		dataSource.setPassword(DB_PASSWORD);
+		try {
+			HikariDataSource dataSource = new HikariDataSource();
+			dataSource.setJdbcUrl(DB_URL);
+			dataSource.setUsername(DB_USERNAME);
+			dataSource.setPassword(DB_PASSWORD);
 
-		MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
+			MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
 
-		// User creator = new User(31L, "user", "user", new ArrayList<Chatroom>(), new
-		// ArrayList<Chatroom>());
-		// User author = creator;
+			User creator = new User(1L, "user", "user", new ArrayList<Chatroom>(), new ArrayList<Chatroom>());
+			User author = creator;
 
-		// Chatroom chatroom = new Chatroom(12L, "room", creator, new
-		// ArrayList<Message>());
+			Chatroom chatroom = new Chatroom(2L, "room", creator, new ArrayList<Message>());
 
-		// Message message = new Message(null, author, chatroom, "Hey, it's beautiful
-		// day ain't??", LocalDateTime.now());
+			Message message = new Message(null, author, chatroom, "Hey, it's beautiful day ain't??", LocalDateTime.now());
 
-		// messagesRepository.save(message);
+			messagesRepository.save(message);
 
-		// System.out.println(message.getId());
+			System.out.println(message.getId());
 
-		dataSource.close();
+			dataSource.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
