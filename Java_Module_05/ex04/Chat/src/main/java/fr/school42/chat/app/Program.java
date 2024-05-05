@@ -20,7 +20,7 @@ public class Program {
 	private static final String DB_USERNAME = "myuser";
 	private static final String DB_PASSWORD = "mypassword";
 
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) {
 
 		try (HikariDataSource dataSource = new HikariDataSource()) {
 			dataSource.setJdbcUrl(DB_URL);
@@ -29,14 +29,14 @@ public class Program {
 
 			UserRepository userRepository = new UserRepositoryJdbcImpl(dataSource);
 
-			List<User> users = userRepository.findAll(0, 2);
+			List<User> users = userRepository.findAll(0, 1);
 
 			for (User user : users) {
 				System.out.println(user);
 			}
 
 			dataSource.close();
-		} catch (RuntimeException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -1,5 +1,6 @@
 package fr.school42.chat.repositories;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,22 +26,41 @@ public class UserRepositoryJdbcImpl implements UserRepository {
   public List<User> findAll(int page, int size) throws RuntimeException {
 
     final String SQL_SELECT = """
-        SELECT
-        	u.*,
-        	cr1.id AS created_room_id,
-        	cr1.name AS created_room_name,
-        	cr2.id AS participating_room_id,
-        	cr2.name AS participating_room_name
-        FROM
-        	users u
-        	LEFT JOIN chat_rooms cr1 ON u.id = cr1.owner
-        	LEFT JOIN chat_rooms cr2 ON u.id IN(
-        		SELECT
-        			author FROM messages
-        		WHERE
-        			chat_room = cr2.id)
-        LIMIT ? OFFSET ?;
-        """;
+        WITH need_users AS
+        (
+           SELECT id, login FROM users
+           ORDER BY id limit ? offset ?), created_chats AS
+        (
+            SELECT u.id AS user_id, u.login AS user_name,
+                array_agg(c.id)   AS created_chat_id,
+                array_agg(c.NAME) AS created_chat_name
+            FROM need_users u
+            LEFT JOIN chat_rooms c ON  u.id = c.owner
+            GROUP BY  u.id, u.login), used_chats AS
+        (
+            SELECT u.id AS user_id,
+                u.login as user_name,
+                array_agg(cc.id) AS used_chat_id,
+                array_agg(cr.NAME) AS used_chat_name
+            FROM need_users u
+            LEFT JOIN users_chat_rooms uc
+            ON u.id = uc.user_id
+            LEFT JOIN chat_rooms cc
+            ON uc.chat_room_id = cc.id
+            LEFT JOIN chat_rooms cr
+            ON uc.chat_room_id = cr.id
+            GROUP BY  u.id, u.login)
+        SELECT c.user_id,
+            c.user_name,
+            c.created_chat_id,
+            c.created_chat_name,
+            u.used_chat_id,
+            u.used_chat_name
+        FROM created_chats c
+        LEFT JOIN used_chats u
+        ON c.user_id = u.user_id
+        ORDER BY c.user_id;
+          """;
 
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
@@ -82,20 +102,13 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     ArrayList<User> users = new ArrayList<>();
 
     while (resultSet.next()) {
-      Long id = resultSet.getLong("id");
-      int index = isUserInList(users, id);
-      User user = null;
-      if (index == -1) {
-        user = new User(
-            resultSet.getLong("id"),
-            resultSet.getString("login"),
-            resultSet.getString("password"));
-        users.add(user);
-      } else {
-        user = users.get(index);
-      }
-      user.addCreatedRoom(mapChatRooms(resultSet, true));
-      user.addChatroom(mapChatRooms(resultSet, false));
+      User user = new User(
+          resultSet.getLong("user_id"),
+          resultSet.getString("user_name"),
+          "",
+          mapChatRooms(resultSet, true),
+          mapChatRooms(resultSet, false));
+      users.add(user);
     }
     return users;
   }
@@ -109,11 +122,28 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     return -1;
   }
 
-  private Chatroom mapChatRooms(ResultSet resultSet, boolean isCreatedByUser) throws SQLException {
-    String columnName = (isCreatedByUser) ? "created_" : "participating_";
-    Long id = resultSet.getLong(columnName + "room_id");
-    String name = resultSet.getString(columnName + "room_name");
-    return new Chatroom(id, name, null, new ArrayList<>());
+  private ArrayList<Chatroom> mapChatRooms(ResultSet resultSet, boolean isCreatedByUser) throws SQLException {
+    ArrayList<Chatroom> chatrooms = new ArrayList<>();
+    String columnName = (isCreatedByUser) ? "created_" : "used_";
+
+    Array chatIds = resultSet.getArray(columnName + "chat_id");
+    Array chatNames = resultSet.getArray(columnName + "chat_name");
+
+    if (chatIds != null && chatNames != null) {
+      Integer[] ids = (Integer[]) chatIds.getArray();
+      String[] names = (String[]) chatNames.getArray();
+
+      for (int i = 0; i < ids.length; i++) {
+        Chatroom chatroom = new Chatroom(
+            ids[i] == null ? null : Long.valueOf(ids[i]),
+            names[i],
+            null,
+            new ArrayList<>());
+        chatrooms.add(chatroom);
+      }
+    }
+
+    return chatrooms;
   }
 
   public static User createUserFromResultSet(ResultSet resultSet) throws SQLException {
