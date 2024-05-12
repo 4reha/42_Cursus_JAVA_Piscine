@@ -1,18 +1,11 @@
 package fr.school42.chat.app;
 
-import java.sql.SQLException;
 import com.zaxxer.hikari.HikariDataSource;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import fr.school42.chat.repositories.MessagesRepository;
-import fr.school42.chat.repositories.MessagesRepositoryJdbcImpl;
 import fr.school42.chat.repositories.UserRepository;
 import fr.school42.chat.repositories.UserRepositoryJdbcImpl;
 import fr.school42.chat.models.User;
-import fr.school42.chat.models.Chatroom;
-import fr.school42.chat.models.Message;
 
 public class Program {
 

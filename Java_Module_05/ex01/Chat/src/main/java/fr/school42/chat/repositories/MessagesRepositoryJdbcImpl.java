@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 import javax.sql.DataSource;
 
@@ -14,11 +13,11 @@ import fr.school42.chat.models.Chatroom;
 import fr.school42.chat.models.Message;
 import fr.school42.chat.models.User;
 
-public class MessagesRepo implements MessagesRepository {
+public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 
 	private DataSource dataSource;
 
-	public MessagesRepo(DataSource dataSource) {
+	public MessagesRepositoryJdbcImpl(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 

@@ -2,14 +2,10 @@ package fr.school42.chat.app;
 
 import java.sql.SQLException;
 import com.zaxxer.hikari.HikariDataSource;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 
 import fr.school42.chat.repositories.MessagesRepository;
 import fr.school42.chat.repositories.MessagesRepositoryJdbcImpl;
-import fr.school42.chat.models.User;
-import fr.school42.chat.models.Chatroom;
 import fr.school42.chat.models.Message;
 
 public class Program {
@@ -27,7 +23,7 @@ public class Program {
 
 		MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
 
-		Optional<Message> messageOptional = messagesRepository.findById(11L);
+		Optional<Message> messageOptional = messagesRepository.findById(22L);
 
 		if (messageOptional.isPresent()) {
 			Message message = messageOptional.get();

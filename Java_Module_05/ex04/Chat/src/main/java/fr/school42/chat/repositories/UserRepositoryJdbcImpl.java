@@ -29,26 +29,26 @@ public class UserRepositoryJdbcImpl implements UserRepository {
         WITH need_users AS
         (
            SELECT id, login FROM users
-           ORDER BY id limit ? offset ?), created_chats AS
+           ORDER BY id limit ? offset ?),
+        created_chats AS
         (
             SELECT u.id AS user_id, u.login AS user_name,
                 array_agg(c.id)   AS created_chat_id,
                 array_agg(c.NAME) AS created_chat_name
             FROM need_users u
             LEFT JOIN chat_rooms c ON  u.id = c.owner
-            GROUP BY  u.id, u.login), used_chats AS
+            GROUP BY  u.id, u.login),
+        used_chats AS
         (
             SELECT u.id AS user_id,
                 u.login as user_name,
                 array_agg(cc.id) AS used_chat_id,
-                array_agg(cr.NAME) AS used_chat_name
+                array_agg(cc.NAME) AS used_chat_name
             FROM need_users u
             LEFT JOIN users_chat_rooms uc
             ON u.id = uc.user_id
             LEFT JOIN chat_rooms cc
             ON uc.chat_room_id = cc.id
-            LEFT JOIN chat_rooms cr
-            ON uc.chat_room_id = cr.id
             GROUP BY  u.id, u.login)
         SELECT c.user_id,
             c.user_name,
