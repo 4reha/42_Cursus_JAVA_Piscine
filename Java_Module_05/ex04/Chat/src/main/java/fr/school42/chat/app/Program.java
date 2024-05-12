@@ -29,7 +29,7 @@ public class Program {
 
 			UserRepository userRepository = new UserRepositoryJdbcImpl(dataSource);
 
-			List<User> users = userRepository.findAll(0, 1);
+			List<User> users = userRepository.findAll(1, 2);
 
 			for (User user : users) {
 				System.out.println(user);

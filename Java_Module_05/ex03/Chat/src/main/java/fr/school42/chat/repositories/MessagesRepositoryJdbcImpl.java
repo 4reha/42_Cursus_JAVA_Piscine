@@ -12,6 +12,9 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class MessagesRepositoryJdbcImpl implements MessagesRepository {
@@ -144,7 +147,9 @@ public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 		Message message = new Message();
 		message.setId(resultSet.getLong("id"));
 		message.setText(resultSet.getString("text"));
-		message.setDateTime(resultSet.getTimestamp("created_at").toLocalDateTime());
+		LocalDateTime dateTime = resultSet.getTimestamp("created_at") == null ? null
+				: resultSet.getTimestamp("created_at").toLocalDateTime();
+		message.setDateTime(dateTime);
 		message.setAuthor(createUserFromResultSet(resultSet));
 		message.setChatroom(createChatroomFromResultSet(resultSet));
 		return message;

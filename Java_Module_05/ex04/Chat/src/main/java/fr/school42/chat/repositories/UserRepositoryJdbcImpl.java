@@ -148,7 +148,6 @@ public class UserRepositoryJdbcImpl implements UserRepository {
 
   public static User createUserFromResultSet(ResultSet resultSet) throws SQLException {
     User user = new User();
-    System.out.println(resultSet);
     user.setId(resultSet.getLong("id"));
     user.setLogin(resultSet.getString("login"));
     user.setPassword(resultSet.getString("password"));

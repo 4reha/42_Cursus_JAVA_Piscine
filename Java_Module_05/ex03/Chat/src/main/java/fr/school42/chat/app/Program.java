@@ -27,7 +27,7 @@ public class Program {
 
 		MessagesRepository messagesRepository = new MessagesRepositoryJdbcImpl(dataSource);
 
-		Optional<Message> messageOptional = messagesRepository.findById(13L);
+		Optional<Message> messageOptional = messagesRepository.findById(11L);
 
 		if (messageOptional.isPresent()) {
 			Message message = messageOptional.get();

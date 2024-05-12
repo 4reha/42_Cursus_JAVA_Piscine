@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 import javax.sql.DataSource;
 
@@ -12,11 +14,11 @@ import fr.school42.chat.models.Chatroom;
 import fr.school42.chat.models.Message;
 import fr.school42.chat.models.User;
 
-public class MessagesRepositoryJdbcImpl implements MessagesRepository {
+public class MessagesRepo implements MessagesRepository {
 
 	private DataSource dataSource;
 
-	public MessagesRepositoryJdbcImpl(DataSource dataSource) {
+	public MessagesRepo(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
@@ -45,7 +47,9 @@ public class MessagesRepositoryJdbcImpl implements MessagesRepository {
 		Message message = new Message();
 		message.setId(resultSet.getLong("id"));
 		message.setText(resultSet.getString("text"));
-		message.setDateTime(resultSet.getTimestamp("created_at").toLocalDateTime());
+		LocalDateTime dateTime = resultSet.getTimestamp("created_at") == null ? null
+				: resultSet.getTimestamp("created_at").toLocalDateTime();
+		message.setDateTime(dateTime);
 		message.setAuthor(createUserFromResultSet(resultSet));
 		message.setChatroom(createChatroomFromResultSet(resultSet));
 		return message;
