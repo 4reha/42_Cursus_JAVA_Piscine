@@ -1,5 +1,7 @@
-*.class
+**/*.class
 
-.vscode
+**/target/
 
-.DS_Store
+**/.vscode
+
+**/.DS_Store
