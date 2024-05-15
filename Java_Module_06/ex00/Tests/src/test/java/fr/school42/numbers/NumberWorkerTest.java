@@ -17,7 +17,7 @@ class NumberWorkerTest {
   @ParameterizedTest
   @ValueSource(ints = { 4, 6, 8, 9, 10, 12, 14 })
   void isPrimeForNotPrimes(int notPrimeNumber) {
-    assertFalse(!INSTANCE.isPrime(notPrimeNumber));
+    assertFalse(INSTANCE.isPrime(notPrimeNumber));
   }
 
   @ParameterizedTest
