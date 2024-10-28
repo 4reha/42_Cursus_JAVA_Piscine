@@ -1,0 +1,27 @@
+DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS messages;
+
+DROP TABLE IF EXISTS chatrooms;
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    last_room_id BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS chatrooms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    text TEXT NOT NULL,
+    from_id BIGINT NOT NULL,
+    room_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (from_id) REFERENCES users (id),
+    FOREIGN KEY (room_id) REFERENCES chatrooms (id)
+);
