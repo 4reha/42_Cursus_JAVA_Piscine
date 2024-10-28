@@ -1,9 +1,9 @@
-**/*.class
+*.class
 
-**/target/
+target/
 
-**/.vscode
+.vscode/
 
-**/.DS_Store
+.DS_Store
 
 docker-compose.yml
